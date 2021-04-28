@@ -13,6 +13,7 @@ from siyu.awsconfig import CLOUDFRONT
 from siyu.controller.subscribe_controller import SubscribeController
 from sqlalchemy import or_
 import io
+from hashids import Hashids
 
 
 class PlayController():
@@ -87,6 +88,7 @@ class PlayController():
 
     def post_play(self, file, user_id, play_name, play_description, play_visibility, play_tag):
         # user_id as file folder
+        hashids = Hashids(min_length=6)
         date = datetime.now()
         creator = UserTable.query.filter_by(id=user_id).first()
         result = self.upload_play(file, str(user_id))
@@ -105,16 +107,25 @@ class PlayController():
             play_description=play_description, play_visibility=play_visibility, play_tag=play_tag, date=date, user_id=user_id, play_thumbnail_url=play_thumbnail_url)
         msg = save_check(play_item)
         (code, message) = (1, msg) if msg else (0, '')
-        result = {'code': code, 'msg': message,
-                  'play_visibility': play_visibility}
         if not code:  # 上传成功
             play_object = PlayTable.query.filter_by(
                 play_url=play_url).first()
-            result['play_name'] = play_name
-            result['play_id'] = play_object.id
-            result['creator'] = creator.name
-            result['share_id'] = play_object.share_id
-            result['twilio_number'] = creator.twilio_number
+            share_id = hashids.encode(play_object.id)
+            play_object.share_id = share_id
+            msg = update_check()
+            (code, message) = (1, msg) if msg else (0, '')
+            if not code:  # 更新成果
+                result = {'code': code, 'msg': message,
+                          'play_visibility': play_visibility}
+                result['play_name'] = play_name
+                result['play_id'] = play_object.id
+                result['creator'] = creator.name
+                result['share_id'] = play_object.share_id
+                result['twilio_number'] = creator.twilio_number
+            else:
+                result = {'code': code, 'msg': message}
+        else:
+            result = {'code': code, 'msg': message}
         return result
 
     def play_vote(self, share_id, user_id):

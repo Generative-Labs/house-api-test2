@@ -23,6 +23,7 @@ from flask import request, g, jsonify, render_template, url_for
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, jwt_refresh_token_required, create_refresh_token, get_jwt_identity, fresh_jwt_required
 import stripe
 from siyu.stripeconfig import API_KEY
+from siyu.controller.stripe_controller import StripeController
 
 jwt = JWTManager(app)
 stripe.api_key = API_KEY
@@ -88,7 +89,7 @@ def login():
     result = user.check_auth(phone_number, password)
     if not result['code']:
         result = {'code': 0, 'msg': {'access_token': create_access_token(identity=result['user'].id, fresh=True), 'refresh_token': create_refresh_token(identity=result['user'].id), 'user_id': result['user'].id, 'username': result['user'].username,
-                                     'name': result['user'].name, 'bio': result['user'].bio, 'number_follower': result['user'].number_follower,
+                                     'name': result['user'].name, 'bio': result['user'].bio, 'customer_id': result['user'].customer_id, 'number_follower': result['user'].number_follower,
                                      'number_following': result['user'].number_following, 'avatar': result['user'].avatar[0].image_url}}
         return jsonify(result), 200
         # login_user(result['user'], remember=True)
@@ -126,7 +127,7 @@ def fresh_login():
     result = user.check_auth(username, password)
     if not result['code']:
         result = {'code': 0, 'msg': {'access_token': create_access_token(identity=result['user'].id, fresh=True), 'refresh_token': create_refresh_token(identity=result['user'].id), 'user_id': result['user'].id, 'username': result['user'].username,
-                                     'name': result['user'].name, 'bio': result['user'].bio, 'number_follower': result['user'].number_follower,
+                                     'name': result['user'].name, 'bio': result['user'].bio, 'customer_id': result['user'].customer_id, 'number_follower': result['user'].number_follower,
                                      'number_following': result['user'].number_following, 'avatar': result['user'].avatar[0].image_url}}
         return jsonify(result), 200
         # login_user(result['user'], remember=True)
@@ -299,23 +300,29 @@ def register():
     email = '{}@gmail.com'.format(str(datetime.now()).split('.')
                                   [-1]+str(phone_number)[-4:])  # placeholder
     bio = ''
-    controller = UserProfileController()
-    result = controller.create_profile(creator, username, name, password,
-                                       phone_number, email, bio)
-    if not result['code']:
-        token = generate_confirmation_token(phone_number)
-        confirm_url = "https://channels.housechan.com/register/{}".format(
-            token)
-        print('what is confirm_url', confirm_url)
-        # use twilio to send out to the phone
-        content = 'Please click the link below to confirm your phone number:' + confirm_url
-        sid = send_message(content, phone_number)
-        # return sid
-        result['sid'] = sid
-        result['confirm_url'] = confirm_url
-        return jsonify(result), 200
+    stripe_controller = StripeController()
+    stripe_result = stripe_controller.create_customer(phone_number)
+    if not stripe_result['code']:
+        customer_id = stripe_result['message']['customer_id']
+        controller = UserProfileController()
+        result = controller.create_profile(creator, username, name, password,
+                                           phone_number, email, bio, customer_id)
+        if not result['code']:
+            token = generate_confirmation_token(phone_number)
+            confirm_url = "https://channels.housechan.com/register/{}".format(
+                token)
+            print('what is confirm_url', confirm_url)
+            # use twilio to send out to the phone
+            content = 'Please click the link below to confirm your phone number:' + confirm_url
+            sid = send_message(content, phone_number)
+            # return sid
+            result['sid'] = sid
+            result['confirm_url'] = confirm_url
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
     else:
-        return jsonify(result), 400
+        return jsonify({'code': 0, 'msg': 'Stripe customer creation fail'}), 400
 
 
 @app.route('/confirm_phone', methods=['POST'])
@@ -353,6 +360,7 @@ def handle_exist():
 
 
 @app.route('/update_profile', methods=['POST'])
+@jwt_required
 def update_profile():
     payload = request.get_json(silent=True)
     username = payload['username']
@@ -464,8 +472,6 @@ def post_play():
             subscribe_controller = SubscribeController()
             result['twilio_sms'] = subscribe_controller.get_subscriber(
                 play_visibility, result['play_name'], result['play_id'], result['creator'], result['twilio_number'])
-            # print('result', result)
-            # return jsonify({'test': 'test'}), 200
             return jsonify(result), 200
         else:
             return jsonify(result), 400
@@ -520,6 +526,7 @@ def create_tier():
     controller = UserProfileController()
     result = controller.create_tier(
         creator_id, tier_name, tier_price, tier_perks)
+
     return jsonify(result)
 
 

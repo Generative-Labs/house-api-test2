@@ -14,11 +14,12 @@ import re
 from collections import defaultdict
 from siyu.utils import generate_confirmation_token, confirm_token
 from siyu.send_sms import send_message, available_phone, provision_phone
+from siyu.controller.stripe_controller import StripeController
 
 
 class UserProfileController():
     def create_profile(self, creator, username, name, password,
-                       phone_number, email, bio, confirmed=False):
+                       phone_number, email, bio, customer_id, confirmed=False):
         '''
         创建用户，
         '''
@@ -31,7 +32,7 @@ class UserProfileController():
         registered_on = datetime.now()
         user_profile = UserTable(
             creator=creator, username=username, name=name, password=hashed_password,
-            registered_on=registered_on, phone_number=phone_number, email=email, bio=bio,
+            registered_on=registered_on, phone_number=phone_number, email=email, bio=bio, customer_id=customer_id,
             confirmed=confirmed)
         msg1 = save_check(user_profile)
         (code, message) = (1, msg1) if msg1 else (
@@ -49,6 +50,7 @@ class UserProfileController():
                 self.create_tier(user_id, 'free', 0, ['Free for all'])
             if not result2['code']:
                 result2['user_id'] = user_id
+                result2['customer_id'] = customer_id
                 return result2
             else:
                 return {'code': 1, 'msg': 'create user profile:'+result1['msg']+' upload avatar:'+result2['msg']}
@@ -132,6 +134,22 @@ class UserProfileController():
         msg = save_check(tier)
         (code, message) = (1, msg) if msg else (0, '')
         result = {'code': code, 'msg': message}
+        if not result['code']:
+            stripe_controller = StripeController()
+            # tier = TierTable.query.filter_by(
+            #     tier_name=tier_name, tier_price=tier_price).first()
+            stripe_result = stripe_controller.create_product(
+                tier_name, tier.id, creator_id, tier_price)
+            if not stripe_result['code']:
+                tier.price_id = stripe_result['message']['price_id']
+                tier.product_id = stripe_result['message']['product_id']
+                msg = update_check()
+            else:
+                result['code'] = 1
+                result['msg'] = 'stripe create product fail'
+
+            result['tier'] = {'tier_id': tier.id, 'tier_name': tier.tier_name,
+                              'creator_id': tier.creator_id, 'price': tier.tier_price, 'product_id': tier.product_id, 'price_id': tier.price_id}
         return result
 
     def get_tiers(self, creator_id):
@@ -142,7 +160,7 @@ class UserProfileController():
             for tier in tiers:
                 result['response'].append(
                     {'tier_id': tier.id, 'tier_name': tier.tier_name, 'tier_price': tier.tier_price,
-                     'tier_perks': tier.tier_perks, 'creator_id': tier.creator_id, 'create_date': tier.create_date})
+                     'tier_perks': tier.tier_perks, 'creator_id': tier.creator_id, 'product_id': tier.product_id, 'price_id': tier.price_id, 'create_date': tier.create_date})
         else:
             result['response'] = []
         return result
@@ -156,7 +174,7 @@ class UserProfileController():
                 if tier.tier_price == 0:
                     result['response'].append(
                         {'tier_id': tier.id, 'tier_name': tier.tier_name, 'tier_price': tier.tier_price,
-                         'tier_perks': tier.tier_perks, 'creator_id': tier.creator_id, 'create_date': tier.create_date})
+                         'tier_perks': tier.tier_perks, 'creator_id': tier.creator_id, 'product_id': tier.product_id, 'price_id': tier.price_id, 'create_date': tier.create_date})
         else:
             result['response'] = []
         return result

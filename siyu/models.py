@@ -27,6 +27,7 @@ class UserTable(UserMixin, db.Model):
     twilio_number = db.Column(db.Text)
     # name on the profile, can be changed
     phone_number = db.Column(db.Text, unique=True)
+    customer_id = db.Column(db.Text)  # stripe id
     confirmed = db.Column(db.Boolean, default=False)
     # verified by email/phone or not
     email = db.Column(db.Text, unique=True)
@@ -195,6 +196,8 @@ class TierTable(db.Model):
     creator_id = db.Column(db.Integer, db.ForeignKey(
         UserTable.id), nullable=False)
     create_date = db.Column(db.TIMESTAMP)
+    price_id = db.Column(db.Text)  # stripe price id
+    product_id = db.Column(db.Text)  # sripe product id
     # subscribe = db.relationship(
     #     "Subscribers", backref='tier', lazy=True)
 
@@ -208,3 +211,7 @@ class Subscribers(db.Model):
     creator = relationship("UserTable", foreign_keys=[creator_id])
     fan = relationship("UserTable", foreign_keys=[fan_id])
     status = db.Column(db.Integer, default=0)  # 0 is active, 1 not
+
+
+# class StripeTable(db.Model):
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
