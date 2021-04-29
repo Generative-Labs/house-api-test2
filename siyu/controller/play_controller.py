@@ -61,10 +61,10 @@ class PlayController():
 
         return result
 
-    def get_single_play(self, share_id):
-        play = PlayTable.query.filter_by(share_id=share_id).first()
+    def get_single_play(self, id):
+        play = PlayTable.query.filter_by(id=id).first()
         creator = UserTable.query.filter_by(id=play.user_id).first()
-        result = {'share_id': share_id}
+        result = {'id': id}
         result['play_url'] = play.play_url
         # result['play_thumbnail_url'] = play.play_thumbnail_url
         result['play_name'] = play.play_name
@@ -128,8 +128,8 @@ class PlayController():
             result = {'code': code, 'msg': message}
         return result
 
-    def play_vote(self, share_id, user_id):
-        play = PlayTable.query.filter_by(share_id=share_id).first()
+    def play_vote(self, play_id, user_id):
+        play = PlayTable.query.filter_by(id=play_id).first()
         date = datetime.now()
         if play:
             play.vote_number += 1

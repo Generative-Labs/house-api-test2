@@ -40,7 +40,6 @@ class StripeController():
             return {'code': 1, 'message': str(e)}
 
     def create_customer(self, phone_number):
-        print('im here')
         # payload = request.json
         try:
             customer = stripe.Customer.create(
@@ -48,7 +47,6 @@ class StripeController():
                 phone=phone_number,
                 description='House user with number of '+phone_number
             )
-            print('im here 1')
             stripe_result = {'code': 0, 'message': {
                 'customer_id': customer.id}}
             return stripe_result

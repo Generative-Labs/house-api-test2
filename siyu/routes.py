@@ -12,7 +12,7 @@ from siyu.controller.subscribe_controller import SubscribeController
 from siyu.controller.play_controller import PlayController
 from siyu.controller.user_profile_controller import UserProfileController
 from siyu.s3_api import list_files, download_file, upload_file
-from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers
+from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable
 from siyu import db
 from siyu import app
 import random
@@ -480,9 +480,9 @@ def post_play():
 @ app.route('/get_play', methods=['GET', 'POST'])
 def get_play():
     payload = request.get_json()
-    share_id = payload['share_id']
+    play_id = payload['play_id']
     controller = PlayController()
-    result = controller.get_single_play(share_id)
+    result = controller.get_single_play(play_id)
     return jsonify(result)
 
 
@@ -667,10 +667,10 @@ def change_to_creator():
 @ jwt_required
 def play_vote():
     payload = request.get_json(silent=True)
-    share_id = payload['share_id']
+    play_id = payload['play_id']
     user_id = get_jwt_identity()
     play_controller = PlayController()
-    result = play_controller.play_vote(share_id, user_id)
+    result = play_controller.play_vote(play_id, user_id)
     if not result['code']:
         return jsonify(result), 200
     else:
