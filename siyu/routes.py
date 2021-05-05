@@ -590,7 +590,7 @@ def phone_exist():
         if not user:
             return jsonify({'response': {'phone_exist': False}}), 200
         else:
-            return jsonify({'response': {'phone_exist': True}}), 200
+            return jsonify({'response': {'phone_exist': True, 'customer_id': user.customer_id}}), 200
 
 
 @ app.route('/list_phone_number', methods=['GET'])
@@ -734,33 +734,45 @@ def create_customer():
 @app.route('/create_subscription', methods=['POST'])
 def create_subscription():
     payload = request.json
-    # data = request.json
-    # data = json.loads(request.data)
-    try:
-        # Attach the payment method to the customer
-        stripe.PaymentMethod.attach(
-            payload['paymentMethodId'],
-            customer=payload['customerId'],
-        )
-        # Set the default payment method on the customer
-        stripe.Customer.modify(
-            payload['customerId'],
-            invoice_settings={
-                'default_payment_method': payload['paymentMethodId'],
-            },
-        )
+    creator_id = payload['creator_id']
+    tier_id = payload['tier_id']
+    phone_number = payload['phone_number']
+    user = UserTable.query.filter_by(phone_number=phone_number).first()
+    if not user:
+        return jsonify(error={'message': "phone number doesn't exists,register now")}), 400
+    else:
+        try:
+            # Attach the payment method to the customer
+            stripe.PaymentMethod.attach(
+                payload['paymentMethodId'],
+                customer = payload['customerId'],
+            )
+            # Set the default payment method on the customer
+            stripe.Customer.modify(
+                payload['customerId'],
+                invoice_settings = {
+                    'default_payment_method': payload['paymentMethodId'],
+                },
+            )
 
-        # Create the subscription
-        subscription = stripe.Subscription.create(
-            customer=payload['customerId'],
-            items=[
-                {
-                    'price': payload['priceId']
-                }
-            ],
-            # expand=['latest_invoice.payment_intent'],
-        )
-        return jsonify(subscription)
-    except Exception as e:
-        # actual production use 200 to unify with Stripe way of doing things?
-        return jsonify(error={'message': str(e)}), 400
+            # Create the subscription
+            subscription=stripe.Subscription.create(
+                customer = payload['customerId'],
+                items = [
+                    {
+                        'price': payload['priceId']
+                    }
+                ],
+                # expand=['latest_invoice.payment_intent'],
+            )
+            # call stripe controller 的函数
+            controller = SubscribeController()
+            result = controller.subscribe(creator_id, tier_id, user_id)
+            subscription['subscribe_to_tier']=result
+            if not result['code']:
+                return jsonify(subscription), 200
+            else:
+                return jsonify(subscription), 400
+        except Exception as e:
+            # actual production use 200 to unify with Stripe way of doing things?
+            return jsonify(error = {'message': str(e)}), 400

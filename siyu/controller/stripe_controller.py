@@ -54,3 +54,5 @@ class StripeController():
         except Exception as e:
             stripe_result = {'code': 1, 'message': str(e)}
             return stripe_result
+
+    # def create_stripe_subscription(self, creator_id, tier_id, phone_number):
