@@ -739,7 +739,7 @@ def create_subscription():
     phone_number = payload['phone_number']
     user = UserTable.query.filter_by(phone_number=phone_number).first()
     if not user:
-        return jsonify(error={'message': "phone number doesn't exists,register now")}), 400
+        return jsonify(error={'message': "phone number doesn't exists, register now"}), 400
     else:
         try:
             # Attach the payment method to the customer
