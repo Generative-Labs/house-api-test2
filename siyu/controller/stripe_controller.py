@@ -56,3 +56,11 @@ class StripeController():
             return stripe_result
 
     # def create_stripe_subscription(self, creator_id, tier_id, phone_number):
+    def check_stripe_subscription_exists(self, customer_id, price_id):
+        customer = stripe.Customer.retrieve(
+            customer_id, expand=['subscriptions'])
+        for item in customer['subscriptions']['data']:
+            if item.plan.id == price_id:
+                return True
+            else:
+                return False
