@@ -743,8 +743,8 @@ def create_subscription():
     if not user:
         return jsonify(error={'message': "phone number doesn't exists, register now"}), 400
     else:
-        controller = SubscribeController()
-        exists = controller.check_stripe_subscription_exists(
+        stripe_controller = StripeController()
+        exists = stripe_controller.check_stripe_subscription_exists(
             payload['customerId'], payload['priceId'])
         if exists:
             return jsonify(error={'message': 'stripe subscription exists'}), 400
@@ -774,6 +774,7 @@ def create_subscription():
                     # expand=['latest_invoice.payment_intent'],
                 )
                 # call stripe controller 的函数
+                controller = SubscribeController()
                 result = controller.subscribe(creator_id, tier_id, user.id)
                 subscription['subscribe_to_tier'] = result
                 if not result['code']:
