@@ -745,20 +745,20 @@ def create_subscription():
             # Attach the payment method to the customer
             stripe.PaymentMethod.attach(
                 payload['paymentMethodId'],
-                customer = payload['customerId'],
+                customer=payload['customerId'],
             )
             # Set the default payment method on the customer
             stripe.Customer.modify(
                 payload['customerId'],
-                invoice_settings = {
+                invoice_settings={
                     'default_payment_method': payload['paymentMethodId'],
                 },
             )
 
             # Create the subscription
-            subscription=stripe.Subscription.create(
-                customer = payload['customerId'],
-                items = [
+            subscription = stripe.Subscription.create(
+                customer=payload['customerId'],
+                items=[
                     {
                         'price': payload['priceId']
                     }
@@ -767,12 +767,12 @@ def create_subscription():
             )
             # call stripe controller 的函数
             controller = SubscribeController()
-            result = controller.subscribe(creator_id, tier_id, user_id)
-            subscription['subscribe_to_tier']=result
+            result = controller.subscribe(creator_id, tier_id, user.id)
+            subscription['subscribe_to_tier'] = result
             if not result['code']:
                 return jsonify(subscription), 200
             else:
                 return jsonify(subscription), 400
         except Exception as e:
             # actual production use 200 to unify with Stripe way of doing things?
-            return jsonify(error = {'message': str(e)}), 400
+            return jsonify(error={'message': str(e)}), 400
