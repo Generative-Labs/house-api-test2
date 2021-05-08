@@ -322,8 +322,7 @@ def register():
                                            phone_number, email, bio, customer_id)
         if not result['code']:
             token = generate_confirmation_token(phone_number)
-            confirm_url = "https://channels.housechan.com/register/{}".format(
-                token)
+            confirm_url = "https://channels.housechan.com/register/{}".format(token)
             print('what is confirm_url', confirm_url)
             # use twilio to send out to the phone
             content = 'Please click the link below to confirm your phone number:' + confirm_url
