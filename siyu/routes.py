@@ -88,9 +88,22 @@ def login():
     user = UserProfileController()
     result = user.check_auth(phone_number, password)
     if not result['code']:
-        result = {'code': 0, 'msg': {'access_token': create_access_token(identity=result['user'].id, fresh=True), 'refresh_token': create_refresh_token(identity=result['user'].id), 'user_id': result['user'].id, 'username': result['user'].username,
-                                     'name': result['user'].name, 'bio': result['user'].bio, 'customer_id': result['user'].customer_id, 'number_follower': result['user'].number_follower,
-                                     'number_following': result['user'].number_following, 'avatar': result['user'].avatar[0].image_url}}
+        result = {
+            'code': 0, 
+            'msg': {
+                'access_token': create_access_token(identity=result['user'].id, fresh=True), 
+                'refresh_token': create_refresh_token(identity=result['user'].id), 
+                'user_id': result['user'].id, 
+                'username': result['user'].username,
+                'name': result['user'].name, 
+                'bio': result['user'].bio, 
+                'customer_id': result['user'].customer_id, 
+                'number_follower': result['user'].number_follower,
+                'number_following': result['user'].number_following, 
+                'creator_house_phone_number': result['user'].twilio_number,
+                'avatar': result['user'].avatar[0].image_url
+            }
+        }
         return jsonify(result), 200
         # login_user(result['user'], remember=True)
         # g.user = result['user']
