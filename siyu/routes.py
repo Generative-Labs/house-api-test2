@@ -206,15 +206,22 @@ def subscribe_free_tier():
     user = UserTable.query.filter_by(phone_number=phone_number).first()
     controller = UserProfileController()
     if not user:  # 用户首次使用，数据库中不存在
-        name = username = 'house' + \
-            str(datetime.now()).split('.')[-1] + \
-            str(phone_number)[-4:]  # placeholder
-        password = phone_number
-        email = '{}@gmail.com'.format(str(datetime.now()).split('.')
-                                      [-1]+str(phone_number)[-4:])  # placeholder
-        bio = ''
-        result = controller.create_profile(0, username, name, password,
-                                           phone_number, email, bio)
+        stripe_controller = StripeController()
+        stripe_result = stripe_controller.create_customer(phone_number)
+        if not stripe_result['code']:
+            customer_id = stripe_result['message']['customer_id']
+            name = username = 'house' + \
+                str(datetime.now()).split('.')[-1] + \
+                str(phone_number)[-4:]  # placeholder
+            password = phone_number
+            email = '{}@gmail.com'.format(str(datetime.now()).split('.')
+                                          [-1]+str(phone_number)[-4:])  # placeholder
+            bio = ''
+            result = controller.create_profile(0, username, name, password,
+                                               phone_number, email, bio, customer_id)
+        else:
+            # 如果stripe账户没有注册成功，直接返回
+            return jsonify({'code': 0, 'msg': 'Stripe customer creation fail'}), 400
     else:
         result = {'code': 0, 'msg': ''}
     tier_id = controller.get_free_tier(creator_id)['response'][0]['tier_id']
