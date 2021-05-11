@@ -74,8 +74,11 @@ class UserProfileController():
                 user_id=user_id, image_url=image_dir, date=datetime.now())
             msg = save_check(avatar)
         (code, message) = (1, msg) if msg else (0, '')
-        result = {'code': code, 'msg': message,
-                  'avatar': image_dir}
+        result = {
+            'code': code, 
+            'msg': message,
+            'avatar': image_dir
+        }
         return result
 
     def update_profile(self, phone_number, username, name, email, bio):
@@ -84,12 +87,15 @@ class UserProfileController():
             user.bio = bio
             user.username = username
             user.name = name
-            user.email = email
+            # user.email = email #see if email error when '' can be fixed by commenting out
             msg = update_check()
         else:
             msg = ERROR.USER_NOT_EXISTS
         (code, message) = (1, msg) if msg else (0, '')
-        result = {'code': code, 'msg': message}
+        result = {
+            'code': code, 
+            'msg': message
+        }
         if user:
             result['user_id'] = user.id
             result['avatar'] = user.avatar[0].image_url
