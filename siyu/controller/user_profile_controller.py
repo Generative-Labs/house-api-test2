@@ -75,7 +75,7 @@ class UserProfileController():
             msg = save_check(avatar)
         (code, message) = (1, msg) if msg else (0, '')
         result = {
-            'code': code, 
+            'code': code,
             'msg': message,
             'avatar': image_dir
         }
@@ -93,7 +93,7 @@ class UserProfileController():
             msg = ERROR.USER_NOT_EXISTS
         (code, message) = (1, msg) if msg else (0, '')
         result = {
-            'code': code, 
+            'code': code,
             'msg': message
         }
         if user:
@@ -113,6 +113,7 @@ class UserProfileController():
             result['number_follower'] = profile.number_follower
             result['number_following'] = profile.number_following
             result['avatar'] = profile.avatar[0].image_url
+            result['social_links'] = profile.links
         else:
             result = {'code': 1, 'msg': ERROR.USER_NOT_EXISTS}
         # print('profile.avatar', profile.avatar)
@@ -225,4 +226,22 @@ class UserProfileController():
         else:
             msg = ERROR.USER_NOT_EXISTS
             result = {'code': 1, 'msg': msg}
+        return result
+
+    def update_links(self, user_id, links):
+        user = UserTable.query.filter_by(user_id=user_id).first()
+        if user:
+            user.links = links
+            # user.email = email #see if email error when '' can be fixed by commenting out
+            msg = update_check()
+        else:
+            msg = ERROR.USER_NOT_EXISTS
+        (code, message) = (1, msg) if msg else (0, '')
+        result = {
+            'code': code,
+            'msg': message
+        }
+        if user:
+            result['user_id'] = user.id
+            result['links'] = user.links
         return result

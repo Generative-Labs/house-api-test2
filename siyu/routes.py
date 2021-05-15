@@ -89,17 +89,17 @@ def login():
     result = user.check_auth(phone_number, password)
     if not result['code']:
         result = {
-            'code': 0, 
+            'code': 0,
             'msg': {
-                'access_token': create_access_token(identity=result['user'].id, fresh=True), 
-                'refresh_token': create_refresh_token(identity=result['user'].id), 
-                'user_id': result['user'].id, 
+                'access_token': create_access_token(identity=result['user'].id, fresh=True),
+                'refresh_token': create_refresh_token(identity=result['user'].id),
+                'user_id': result['user'].id,
                 'username': result['user'].username,
-                'name': result['user'].name, 
-                'bio': result['user'].bio, 
-                'customer_id': result['user'].customer_id, 
+                'name': result['user'].name,
+                'bio': result['user'].bio,
+                'customer_id': result['user'].customer_id,
                 'number_follower': result['user'].number_follower,
-                'number_following': result['user'].number_following, 
+                'number_following': result['user'].number_following,
                 'creator_house_phone_number': result['user'].twilio_number,
                 'avatar': result['user'].avatar[0].image_url
             }
@@ -329,7 +329,8 @@ def register():
                                            phone_number, email, bio, customer_id)
         if not result['code']:
             token = generate_confirmation_token(phone_number)
-            confirm_url = "https://channels.housechan.com/register/{}".format(token)
+            confirm_url = "https://channels.housechan.com/register/{}".format(
+                token)
             print('what is confirm_url', confirm_url)
             # use twilio to send out to the phone
             content = 'Please click the link below to confirm your phone number:' + confirm_url
@@ -432,6 +433,20 @@ def uplaod_bio():
     user_id = get_jwt_identity()
     controller = UserProfileController()
     result = controller.upload_bio(user_id, bio)
+    if not result['code']:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 400
+
+
+@app.route('/update_links', methods=['POST'])
+@jwt_required
+def update_links():
+    payload = request.get_json(silent=True)
+    user_id = get_jwt_identity()
+    links = json.dumps(payload['social_links'])
+    controller = UserProfileController()
+    result = controller.update_links(user_id, links)
     if not result['code']:
         return jsonify(result), 200
     else:

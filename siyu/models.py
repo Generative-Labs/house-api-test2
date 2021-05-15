@@ -2,6 +2,7 @@ from siyu import db
 from flask_paginate import Pagination, get_page_parameter
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSON
 
 followers = db.Table('followers', db.Column('follower_id', db.Integer, db.ForeignKey(
     'user_table.id')), db.Column('followed_id', db.Integer, db.ForeignKey('user_table.id')), db.Column('follow_on', db.TIMESTAMP))
@@ -31,6 +32,7 @@ class UserTable(UserMixin, db.Model):
     confirmed = db.Column(db.Boolean, default=False)
     # verified by email/phone or not
     email = db.Column(db.Text, unique=True)
+    links = db.Column(JSON)
     followed = db.relationship(
         'UserTable', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
