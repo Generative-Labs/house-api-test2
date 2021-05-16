@@ -229,7 +229,7 @@ class UserProfileController():
         return result
 
     def update_links(self, user_id, links):
-        user = UserTable.query.filter_by(user_id=user_id).first()
+        user = UserTable.query.filter_by(id=user_id).first()
         if user:
             user.links = links
             # user.email = email #see if email error when '' can be fixed by commenting out
