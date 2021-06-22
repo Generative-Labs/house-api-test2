@@ -529,7 +529,7 @@ def storage():
 
 @ app.route("/")
 def say_hello(username="World"):
-    return '<p>Hello %s!</p>\n' % username
+    return '<p>Hello to the %s!</p>\n' % username
 
 
 @ app.route("/logout", methods=["GET"])
