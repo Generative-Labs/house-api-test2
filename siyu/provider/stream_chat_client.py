@@ -20,9 +20,11 @@ class StreamChatClient:
         '''
         发送消息
         '''
+        cannel_id = ['{}'.format(from_user), '{}'.format(to_user)]
+        cannel_id.sort()
         channel = self.server_client.channel(
-            "messaging", '-'.join([from_user, to_user].sort())
+            "messaging", '-'.join(cannel_id)
         )
         # 频道由系统创建
         channel.create("admin")
-        channel.send_message(message, to_user)
+        channel.send_message(message, '{}'.format(from_user))

@@ -837,12 +837,27 @@ def get_message_token():
 
 @app.route('/webhooks/stream/push', methods=['POST'])
 def webhooks_stream_push():
-    print(request.json)
     msg = request.json
-    if msg['type'] != 'message.new' or msg['user']['from'] != 'app':
+    print(msg)
+    print(msg['type'] != 'message.new')
+    print('form' not in msg['user'] )
+    print(msg['user']['from'] != 'app')
+    if msg['type'] != 'message.new' or 'from' not in msg['user'] or msg['user']['from'] != 'app':
         return jsonify(code="1"), 200
     streamController = StreamChatController()
     result = streamController.stream_to_sms(
         msg['user']['id'], msg['user']['to'], msg['message']['text']
     )
     return result, 200
+
+
+@app.route('/webhooks/twilio/sms', methods=['POST'])
+def webhooks_twilio_sms():
+    body = request.values.get('Body', None)
+    from_number = request.values.get('From', None)
+    to_number = request.values.get('To', None)
+    print('from: {} to: {} content: {}'.format(from_number, to_number, body))
+    streamController = StreamChatController()
+    streamController.sms_to_stream(
+        from_user_number=from_number, to_user_number=to_number, content=body)
+    return '', 200
