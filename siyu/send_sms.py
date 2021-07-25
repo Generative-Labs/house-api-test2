@@ -3,6 +3,7 @@ import os
 from twilio.rest import Client
 from siyu.twilioconfig import ACCOUNT_SID, AUTH_TOKEN
 from collections import defaultdict
+from siyu.config.twilio import SMS_URL
 
 # Your Account Sid and Auth Token from twilio.com/console
 # and set the environment variables. See http://twil.io/secure
@@ -31,5 +32,5 @@ def available_phone():
 
 def provision_phone(phone_number):
     incoming_phone_number = client.incoming_phone_numbers.create(
-        phone_number=phone_number)
+        phone_number=phone_number,sms_method='POST',sms_url=SMS_URL)
     return incoming_phone_number.sid
