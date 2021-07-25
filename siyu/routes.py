@@ -1,3 +1,4 @@
+from siyu.provider.stream_chat_client import StreamChatClient
 from siyu.send_sms import send_message, available_phone
 from siyu.controller.sql import save_check, update_check
 from siyu.utils import generate_confirmation_token, confirm_token
@@ -11,6 +12,7 @@ from siyu.controller.comment_controller import CommentController
 from siyu.controller.subscribe_controller import SubscribeController
 from siyu.controller.play_controller import PlayController
 from siyu.controller.user_profile_controller import UserProfileController
+from siyu.controller.stream_chat_controller import StreamChatController
 from siyu.s3_api import list_files, download_file, upload_file
 from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable
 from siyu import db
@@ -87,6 +89,7 @@ def login():
     password = payload.get('password', '')
     user = UserProfileController()
     result = user.check_auth(phone_number, password)
+    print(result['user'].id)
     if not result['code']:
         result = {
             'code': 0,
@@ -818,3 +821,28 @@ def create_subscription():
             except Exception as e:
                 # actual production use 200 to unify with Stripe way of doing things?
                 return jsonify(error={'message': str(e)}), 400
+
+
+@app.route('/message/token', methods=['GET'])
+@ jwt_required
+def get_message_token():
+    '''
+    创建 getStream 会话 token
+    '''
+    user_id = get_jwt_identity()
+    stream_client = StreamChatClient()
+    print('build user getstream token user_id:{}'.format(user_id))
+    return stream_client.create_token('{}'.format(user_id))
+
+
+@app.route('/webhooks/stream/push', methods=['POST'])
+def webhooks_stream_push():
+    print(request.json)
+    msg = request.json
+    if msg['type'] != 'message.new' or msg['user']['from'] != 'app':
+        return jsonify(code="1"), 200
+    streamController = StreamChatController()
+    result = streamController.stream_to_sms(
+        msg['user']['id'], msg['user']['to'], msg['message']['text']
+    )
+    return result, 200

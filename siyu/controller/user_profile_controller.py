@@ -119,6 +119,20 @@ class UserProfileController():
         # print('profile.avatar', profile.avatar)
         return result
 
+    def get_user_profile_by_id(self, user_id):
+        profile = UserTable.query.filter_by(id=user_id).first()
+        if profile:
+            result = {'code': 0}
+            result['id'] = profile.id
+            result['creator'] = profile.creator
+            result['name'] = profile.name
+            result['bio'] = profile.bio
+            result['phone_number'] = profile.phone_number
+            result['twilio_number'] = profile.twilio_number
+        else:
+            result = {'code': 1, 'msg': ERROR.USER_NOT_EXISTS}
+        return result
+
     def check_auth(self, phone_number, password):
         if not phone_number or not password:
             data = {'code': 1, 'msg': ERROR.ARGS}
