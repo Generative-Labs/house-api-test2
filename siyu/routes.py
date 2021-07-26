@@ -827,7 +827,7 @@ def create_subscription():
 @ jwt_required
 def get_message_token():
     '''
-    创建 getStream 会话 token
+    build getStream conversation token
     '''
     user_id = get_jwt_identity()
     stream_client = StreamChatClient()
@@ -837,11 +837,11 @@ def get_message_token():
 
 @app.route('/webhooks/stream/push', methods=['POST'])
 def webhooks_stream_push():
+    '''
+    getStream message callback
+    '''
     msg = request.json
     print(msg)
-    print(msg['type'] != 'message.new')
-    print('form' not in msg['user'] )
-    print(msg['user']['from'] != 'app')
     if msg['type'] != 'message.new' or 'from' not in msg['user'] or msg['user']['from'] != 'app':
         return jsonify(code="1"), 200
     streamController = StreamChatController()
@@ -853,6 +853,9 @@ def webhooks_stream_push():
 
 @app.route('/webhooks/twilio/sms', methods=['POST'])
 def webhooks_twilio_sms():
+    '''
+    twilio sms income callback
+    '''
     body = request.values.get('Body', None)
     from_number = request.values.get('From', None)
     to_number = request.values.get('To', None)

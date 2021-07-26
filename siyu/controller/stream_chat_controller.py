@@ -5,8 +5,17 @@ from siyu.constants import ERROR
 
 
 class StreamChatController():
+    '''
+    im business logic class
+    '''
 
     def stream_to_sms(self, from_user, to_user, content):
+        '''
+        getStream message send to twilio sms 
+        :param from_user: sender user id
+        :param to_user: resive user id
+        :param content: message text content
+        '''
         from_user_info = UserTable.query.filter_by(id=from_user).first()
         to_user_info = UserTable.query.filter_by(id=to_user).first()
         print(from_user_info)
@@ -25,6 +34,12 @@ class StreamChatController():
         return {'code': 0, 'msg': 'success', 'data': cid}
 
     def sms_to_stream(self, from_user_number, to_user_number, content):
+        '''
+        twilio sms send to getStream message 
+        :param from_user_number: sender user phone number
+        :param to_user_number: resive user twilio number
+        :param content: message text content
+        '''
         from_user_info = UserTable.query.filter_by(
             phone_number=from_user_number).first()
         to_user_info = UserTable.query.filter_by(
