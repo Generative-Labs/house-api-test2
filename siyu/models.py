@@ -99,6 +99,7 @@ class PlayTable(db.Model):
     visit_number = db.Column(db.Integer, default=0)
     comment_number = db.Column(db.Integer, default=0)
     share_id = db.Column(db.Text)  # hash过得id，用于分享出去
+    sms_count = db.Column(db.Integer, default=0)
     date = db.Column(db.TIMESTAMP)
     user_id = db.Column(db.Integer, db.ForeignKey(
         UserTable.id), nullable=False)

@@ -101,6 +101,9 @@ class SubscribeController():
                     {'tier_id': subscriber.tier_id, 'fan_id': subscriber.fan_id, 'fan_username': subscriber.fan.username,
                         'fan_tel': subscriber.fan.phone_number, 'fan_email': subscriber.fan.email, 'subscribe_date': subscriber.subscribe_date, 'twilio_sid': sid})
             # print(result)
+            play_object = PlayTable.query.filter_by(id=play_id).first()
+            play_object.sms_count += len(result['response'])
+            update_check()
         else:
             result['response'] = []
 
