@@ -868,6 +868,12 @@ def get_post_sms_click_num():
     source = request.values.get('source', 'sms')
     if not post_id:
         return {'code': '-1', 'msg': 'error query'}
+    play = PlayTable.query.filter_by(id = post_id).first()
+    if not play:
+        return {'code': '-1', 'msg': 'error query'}
+
     click_num = ga_api(post_id, source)
-    result = {'code': '0', 'click_num': click_num}
+    click_rate = click_num / play.sms_count if play.sms_count else ''
+
+    result = {'code': '0', 'click_num': click_num, 'click_rate': click_rate}
     return jsonify(result), 200
