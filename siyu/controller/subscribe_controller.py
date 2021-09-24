@@ -94,12 +94,16 @@ class SubscribeController():
             tier_id_list)).order_by(Subscribers.subscribe_date.desc())
         if subscribers:
             for subscriber in subscribers:
-                sid = self.send_post_to_subscriber(
-                    play_name, play_id, creator, subscriber.fan.phone_number, twilio_number)
+                sid = self.send_post_to_subscriber(play_name, play_id, creator,
+                                                   subscriber.fan.phone_number, twilio_number,
+                                                   source='createPost', medium='sms')
                 result['response'].append(
                     {'tier_id': subscriber.tier_id, 'fan_id': subscriber.fan_id, 'fan_username': subscriber.fan.username,
                         'fan_tel': subscriber.fan.phone_number, 'fan_email': subscriber.fan.email, 'subscribe_date': subscriber.subscribe_date, 'twilio_sid': sid})
             # print(result)
+            play_object = PlayTable.query.filter_by(id=play_id).first()
+            play_object.sms_count += len(result['response'])
+            update_check()
         else:
             result['response'] = []
 
@@ -118,10 +122,17 @@ class SubscribeController():
 
         return result
 
-    def send_post_to_subscriber(self, play_name, play_id, creator, phone_number, twilio_number):
+    def send_post_to_subscriber(self, play_name, play_id, creator, phone_number, twilio_number,
+                                source = '', medium = ''):
         # creator = UserTable.query.filter_by(name=creator).first()
-        content = "{} has just posted a play: {}, see https://channels.housechan.com/post/{}".format(
-            creator, play_name, play_id)
+        utm_source = 'utm_source={}'.format(source) if source else ''
+        utm_medium = 'utm_medium={}'.format(medium) if medium else ''
+        utm = '&'.join({utm_source, utm_medium}) if len(utm_medium) > 0 and len(
+            utm_source) > 0 else utm_medium + utm_source
+
+
+        content = "{} has just posted a play: {}, see https://channels.housechan.com/post/{}{}".format(
+            creator, play_name, play_id, '?' + utm if utm else '')
         print("content", content)
         sid = send_message(content, phone_number, twilio_number)
         return sid

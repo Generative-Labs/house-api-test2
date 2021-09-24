@@ -26,7 +26,7 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token, jw
 import stripe
 from siyu.stripeconfig import API_KEY
 from siyu.controller.stripe_controller import StripeController
-
+from siyu.ga_analytics import ga_api
 jwt = JWTManager(app)
 stripe.api_key = API_KEY
 
@@ -861,3 +861,19 @@ def webhooks_twilio_sms():
     streamController.sms_to_stream(
         from_user_number=from_number, to_user_number=to_number, content=body)
     return '', 200
+
+@app.route('/post/sms/click_num', methods=['GET'])
+def get_post_sms_click_num():
+    post_id = request.values.get('post_id', '')
+    source = request.values.get('source', 'sms')
+    if not post_id:
+        return {'code': '-1', 'msg': 'error query'}
+    play = PlayTable.query.filter_by(id = post_id).first()
+    if not play:
+        return {'code': '-1', 'msg': 'error query'}
+
+    click_num = ga_api(post_id, source)
+    click_rate = click_num / play.sms_count if play.sms_count else ''
+
+    result = {'code': '0', 'click_num': click_num, 'click_rate': click_rate}
+    return jsonify(result), 200

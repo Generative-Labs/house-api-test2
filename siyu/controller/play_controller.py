@@ -77,6 +77,7 @@ class PlayController():
         result['play_thumbnail_url'] = play.play_thumbnail_url
         result['creator_name'] = creator.name
         result['creator_avatar'] = creator.avatar[0].image_url
+        result['sms_count'] = play.sms_count
         return result
 
     def upload_play(self, file, path):
