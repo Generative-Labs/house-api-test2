@@ -89,7 +89,7 @@ def login():
     password = payload.get('password', '')
     user = UserProfileController()
     result = user.check_auth(phone_number, password)
-    print(result['user'].id)
+    #print(result['user'].id)
     if not result['code']:
         result = {
             'code': 0,
