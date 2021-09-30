@@ -7,8 +7,8 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-KEY_FILE_LOCATION = r'C:\Users\`jun\Desktop\house-platform-324907-162a995beb43.json'
-VIEW_ID = '250402833'
+KEY_FILE_LOCATION = r'./siyu/config/ga_config.json'
+VIEW_ID = '250433594'
 
 
 def initialize_analyticsreporting():
