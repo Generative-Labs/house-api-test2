@@ -27,9 +27,11 @@ import stripe
 from siyu.stripeconfig import API_KEY
 from siyu.controller.stripe_controller import StripeController
 from siyu.ga_analytics import ga_api
+from siyu.ga.ga_analytics import ga_api_rangtime, make_post_id_path, make_post_id_source_sum
 jwt = JWTManager(app)
 stripe.api_key = API_KEY
 
+SOURCE_CHANNEL = ['sms', 'game']
 #User####
 
 # login_manager = LoginManager()
@@ -862,7 +864,7 @@ def webhooks_twilio_sms():
         from_user_number=from_number, to_user_number=to_number, content=body)
     return '', 200
 
-@app.route('/post/sms/click_num', methods=['GET'])
+@app.route('/post/sms/click_num', methods=['GET', 'POST'])
 def get_post_sms_click_num():
     post_id = request.values.get('post_id', '')
     source = request.values.get('source', 'sms')
@@ -876,4 +878,72 @@ def get_post_sms_click_num():
     click_rate = click_num / play.sms_count if play.sms_count else ''
 
     result = {'code': '0', 'click_num': click_num, 'click_rate': click_rate}
+    return jsonify(result), 200
+
+@app.route('/get_stats', methods=['GET', 'POST'])
+@ jwt_required
+def get_all_status():
+    msg = request.json
+    print("msg:",msg)
+    if msg is None:
+        msg = {}
+    
+    # reserv query param
+    start_time = msg.get('start_time', '2021-09-01')
+    end_time = msg.get('end_time', 'today')
+
+    query_user_id = get_jwt_identity()
+
+    ########test#########
+    #query_user_id = 33
+    #####################
+
+    result = {}
+    play = PlayTable.query.filter_by(user_id=query_user_id).all()
+    if play is None:
+        result['code'] = '-1'
+        result['msg'] = 'play is not exist or has no post'
+        return jsonify(result), 200
+    sms_count = 0
+    ga_sms_count = 0
+    ret_reponse = {}
+    ret_reponse['post_stats']=[]
+
+    ga_api_post_list = []
+    ga_api_ret_dict = {}
+
+    # request post_id path
+    for post_info in play:
+        ga_api_post_list.append(make_post_id_path(post_info.id))
+
+    ga_api_ret_dict = ga_api_rangtime(ga_api_post_list, start_time, end_time, SOURCE_CHANNEL)
+
+    for play_sume in play:
+        #sms channel
+        source_sms="sms"
+        if source_sms in SOURCE_CHANNEL:
+            tmp_ga_sms_count = ga_api_ret_dict.get(make_post_id_source_sum(make_post_id_path(post_info.id),source_sms), 0)
+            sms_count+=play_sume.sms_count
+            ga_sms_count+=tmp_ga_sms_count
+
+            tmp_play_object = {}
+            tmp_play_object['post_id'] = play_sume.id
+            tmp_play_object['post_name'] = play_sume.play_name
+            tmp_play_object['post_thumbnail'] = play_sume.play_url
+            tmp_play_object['post_clicks'] = play_sume.sms_count
+            if not play_sume.sms_count:
+                tmp_play_object['post_CTR'] = 0
+            else :
+                tmp_play_object['post_CTR'] = tmp_ga_sms_count / play_sume.sms_count
+            ret_reponse['post_stats'].append(tmp_play_object)
+
+            ret_reponse['Overall_SMS_clicks'] = sms_count
+            if not sms_count:
+                ret_reponse['overall_SMS_CRT'] = 0
+            else :
+                ret_reponse['overall_SMS_CRT'] = ga_sms_count / sms_count
+    
+    #ret_reponse['link_stats'] = {}
+    result['code'] = 0
+    result['respone'] = ret_reponse
     return jsonify(result), 200
