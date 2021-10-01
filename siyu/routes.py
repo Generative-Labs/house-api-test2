@@ -862,7 +862,7 @@ def webhooks_twilio_sms():
         from_user_number=from_number, to_user_number=to_number, content=body)
     return '', 200
 
-@app.route('/post/sms/click_num', methods=['GET'])
+@app.route('/post/sms/click_num', methods=['GET', 'POST'])
 def get_post_sms_click_num():
     post_id = request.values.get('post_id', '')
     source = request.values.get('source', 'sms')
