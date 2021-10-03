@@ -26,7 +26,6 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token, jw
 import stripe
 from siyu.stripeconfig import API_KEY
 from siyu.controller.stripe_controller import StripeController
-from siyu.ga_analytics import ga_api
 from siyu.ga.ga_analytics import ga_api_rangtime, make_post_id_path, make_post_id_source_sum
 jwt = JWTManager(app)
 stripe.api_key = API_KEY
@@ -870,14 +869,21 @@ def webhooks_twilio_sms():
 @app.route('/post/sms/click_num', methods=['GET', 'POST'])
 def get_post_sms_click_num():
     post_id = request.values.get('post_id', '')
-    source = request.values.get('source', 'sms')
+    #source = request.values.get('source', 'sms')
+    ga_api_post_list =[]
+    source = "sms"
+    source_list = []
+    source_list.append(source)
     if not post_id:
         return {'code': '-1', 'msg': 'error query'}
     play = PlayTable.query.filter_by(id = post_id).first()
     if not play:
         return {'code': '-1', 'msg': 'error query'}
 
-    click_num = ga_api(post_id, source)
+    ga_api_post_list.append(make_post_id_path(post_id))
+    ga_api_ret_dict = ga_api_rangtime(ga_api_post_list, source_list)
+    click_num=ga_api_ret_dict.get(make_post_id_source_sum(make_post_id_path(post_id),source), 0)
+
     click_rate = click_num / play.sms_count if play.sms_count else ''
 
     result = {'code': '0', 'click_num': click_num, 'click_rate': click_rate}
@@ -895,14 +901,14 @@ def get_all_status():
     start_time = msg.get('start_time', '2021-09-01')
     end_time = msg.get('end_time', 'today')
 
-    query_user_id = get_jwt_identity()
+    user_id = get_jwt_identity()
 
     ########test#########
-    #query_user_id = 33
+    #user_id = 33
     #####################
 
     result = {}
-    play = PlayTable.query.filter_by(user_id=query_user_id).all()
+    play = PlayTable.query.filter_by(user_id=user_id).all()
     if play is None:
         result['code'] = '-1'
         result['msg'] = 'play is not exist or has no post'
@@ -919,13 +925,13 @@ def get_all_status():
     for post_info in play:
         ga_api_post_list.append(make_post_id_path(post_info.id))
 
-    ga_api_ret_dict = ga_api_rangtime(ga_api_post_list, start_time, end_time, SOURCE_CHANNEL)
+    ga_api_ret_dict = ga_api_rangtime(ga_api_post_list, SOURCE_CHANNEL, start_time, end_time)
 
     for play_sume in play:
         #sms channel
         source_sms="sms"
         if source_sms in SOURCE_CHANNEL:
-            tmp_ga_sms_count = ga_api_ret_dict.get(make_post_id_source_sum(make_post_id_path(post_info.id),source_sms), 0)
+            tmp_ga_sms_count = ga_api_ret_dict.get(make_post_id_source_sum(make_post_id_path(play_sume.id),source_sms), 0)
             sms_count+=play_sume.sms_count
             ga_sms_count+=tmp_ga_sms_count
 

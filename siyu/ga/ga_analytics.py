@@ -7,10 +7,8 @@ import re
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 import json
-
-SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-KEY_FILE_LOCATION = r'./siyu/config/ga_config.json'
-VIEW_ID = '250433594'
+#from siyu.config.ga_config import GA_KEY_DICT, VIEW_ID, SCOPES
+from siyu.config.ga_config import GA_KEY_DICT, VIEW_ID, SCOPES
 
 
 def initialize_analyticsreporting():
@@ -19,8 +17,8 @@ def initialize_analyticsreporting():
   Returns:
     An authorized Analytics Reporting API V4 service object.
   """
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        KEY_FILE_LOCATION, SCOPES)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+        GA_KEY_DICT, SCOPES)
 
     # Build the service object.
     analytics = build('analyticsreporting', 'v4', credentials=credentials)
@@ -28,7 +26,7 @@ def initialize_analyticsreporting():
     return analytics
 
 
-def get_report(analytics, post_id_path_list = {}, start_time = '2021-09-01', end_time = 'today', sources=['sms']):
+def get_report(analytics, post_id_path_list = {}, sources=['sms'], start_time = '2021-09-01', end_time = 'today'):
     """Queries the Analytics Reporting API V4.
 
     Args:
@@ -122,9 +120,9 @@ def make_post_id_path(post_id = ''):
 def make_post_id_source_sum(post_path = '', source = 'sms'):
   return '{}|{}'.format(post_path,source) if source else 'sms'
 
-def ga_api_rangtime(post_id_path_list = [], start_time = '2021-09-01', end_time = 'today', sources = ['sms']):
+def ga_api_rangtime(post_id_path_list = [], sources = ['sms'], start_time = '2021-09-01', end_time = 'today'):
     analytics = initialize_analyticsreporting()
-    response = get_report(analytics, post_id_path_list, start_time, end_time, sources)
+    response = get_report(analytics, post_id_path_list, sources, start_time, end_time)
     return get_pageview_dict(response)
 
 if __name__ == '__main__':
