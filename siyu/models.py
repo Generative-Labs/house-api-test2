@@ -3,6 +3,7 @@ from flask_paginate import Pagination, get_page_parameter
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.sql import func
 
 followers = db.Table('followers', db.Column('follower_id', db.Integer, db.ForeignKey(
     'user_table.id')), db.Column('followed_id', db.Integer, db.ForeignKey('user_table.id')), db.Column('follow_on', db.TIMESTAMP))

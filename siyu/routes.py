@@ -14,7 +14,7 @@ from siyu.controller.play_controller import PlayController
 from siyu.controller.user_profile_controller import UserProfileController
 from siyu.controller.stream_chat_controller import StreamChatController
 from siyu.s3_api import list_files, download_file, upload_file
-from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable
+from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable, func
 from siyu import db
 from siyu import app
 import random
@@ -955,4 +955,31 @@ def get_all_status():
     #ret_reponse['link_stats'] = {}
     result['code'] = 0
     result['respone'] = ret_reponse
+    return jsonify(result), 200
+
+@app.route('/get_my_earnings', methods=['GET', 'POST'])
+@ jwt_required
+def get_my_earnings():
+    msg = request.json
+    print("msg:",msg)
+    if msg is None:
+        msg = {}
+    result = {}
+    # reserv query param
+    start_time = msg.get('start_time', '2021-09-01')
+    end_time = msg.get('end_time', datetime.now().strftime("%Y-%m-%d"))
+    #unit = msg.get('unit', 'USD')
+    print("end_time:", end_time)
+
+    user_id = get_jwt_identity()
+    ########test#########
+    #user_id = 33
+    #####################
+    sum_count = TierTable.query.with_entities(func.coalesce(func.sum(TierTable.tier_price), 0)).join(Subscribers, (TierTable.creator_id == Subscribers.creator_id) & (TierTable.id == Subscribers.tier_id)).filter(TierTable.creator_id == user_id).filter(Subscribers.subscribe_date.between(start_time, end_time)).scalar()
+    
+    print("sum_count:", sum_count)
+    result['code'] = 0
+    result['respone'] = {}
+    result['respone']['earnings'] = sum_count
+    result['respone']['unit'] = 'USD'
     return jsonify(result), 200
