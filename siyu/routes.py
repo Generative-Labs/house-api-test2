@@ -909,7 +909,7 @@ def get_all_status():
 
     result = {}
     play = PlayTable.query.filter_by(user_id=user_id).all()
-    if play is None:
+    if not play:
         result['code'] = '-1'
         result['msg'] = 'play is not exist or has no post'
         return jsonify(result), 200
