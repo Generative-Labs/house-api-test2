@@ -96,7 +96,7 @@ class SubscribeController():
             for subscriber in subscribers:
                 sid = self.send_post_to_subscriber(play_name, play_id, creator,
                                                    subscriber.fan.phone_number, twilio_number,
-                                                   source='createPost', medium='sms')
+                                                   source='sms', medium='createpost')
                 result['response'].append(
                     {'tier_id': subscriber.tier_id, 'fan_id': subscriber.fan_id, 'fan_username': subscriber.fan.username,
                         'fan_tel': subscriber.fan.phone_number, 'fan_email': subscriber.fan.email, 'subscribe_date': subscriber.subscribe_date, 'twilio_sid': sid})
