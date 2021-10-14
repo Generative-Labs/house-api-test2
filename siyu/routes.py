@@ -457,7 +457,7 @@ def update_links():
         return jsonify(result), 400
 
 @app.route('/upload_link_pic', methods=['POST'])
-#@jwt_required
+@jwt_required
 def upload_link_pic():
     f = request.files['file']
     result ={}
