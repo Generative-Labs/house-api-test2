@@ -6,6 +6,7 @@ AWS_SECRET = os.environ["AWS_SECRET_ACCESS_KEY"]
 S3_LOCATION = 'http://{}.s3.amazonaws.com'.format(S3_BUCKET)
 CLOUDFRONT = 'https://d97ch61yqe5j6.cloudfront.net'
 # AVATAR = S3_LOCATION+'avatar'
+LINK_PICS_DIR = "link_pics"
 
 SECRET_KEY = os.urandom(32)
 DEBUG = True

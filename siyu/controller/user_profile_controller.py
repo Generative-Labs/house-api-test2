@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from siyu.controller.sql import save_check, update_check
 from siyu.s3_api import list_files, download_file, upload_file
 from siyu.constants import ERROR
-from siyu.awsconfig import CLOUDFRONT
+from siyu.awsconfig import CLOUDFRONT, LINK_PICS_DIR
 import re
 from collections import defaultdict
 from siyu.utils import generate_confirmation_token, confirm_token
@@ -259,3 +259,11 @@ class UserProfileController():
             result['user_id'] = user.id
             result['links'] = user.links
         return result
+
+    def upload_link_pic(self, file):
+        path = ""
+        if file:
+            response, path = upload_file(file, LINK_PICS_DIR)
+            if not path:
+                print("file_name:", file.filename, "response:", response)
+        return path
