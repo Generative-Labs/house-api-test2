@@ -219,3 +219,10 @@ class Subscribers(db.Model):
 
 # class StripeTable(db.Model):
 #     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+class PostLikeTable(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
+    play_id = db.Column(db.Integer, db.ForeignKey(PlayTable.id), nullable=False)
+    fan_id = db.Column(db.Integer, db.ForeignKey(UserTable.id), nullable=False)
+    like_status = db.Column(db.Integer, default=0)  # 0 is no like, 1 like
+    db.UniqueConstraint(play_id,fan_id)
