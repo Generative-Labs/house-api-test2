@@ -22,11 +22,9 @@ def initialize_analyticsreporting():
 
     # Build the service object.
     analytics = build('analyticsreporting', 'v4', credentials=credentials)
-
     return analytics
 
-
-def get_report(analytics, post_id_path_list = {}, sources=['sms'], start_time = '2021-09-01', end_time = 'today'):
+def get_report(analytics, post_id_path_list = [], sources=['sms'], start_time = '2021-09-01', end_time = 'today'):
     """Queries the Analytics Reporting API V4.
 
     Args:
