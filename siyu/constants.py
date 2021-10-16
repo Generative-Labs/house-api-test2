@@ -8,4 +8,4 @@ class ERROR:
     DELETE = 'Delete failed'
     EXISTS = 'Already exists'
     USER_CREATOR = 'User already registered as creator'
-    UPLOAD = 'Upload file failed'
+    UPLOAD = 'Upload empty file failed'

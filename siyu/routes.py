@@ -459,19 +459,20 @@ def update_links():
 @app.route('/upload_link_pic', methods=['POST'])
 @jwt_required
 def upload_link_pic():
-    f = request.files['file']
-    result ={}
-    if f:
-        url_path = UserProfileController().upload_link_pic(f)
-        if url_path:
-            result['code'] = 0
-            result['pic_path']= url_path
-        else:
+    if request.method == 'POST':
+        f = request.files.get("file")
+        result ={}
+        if f:
+            url_path = UserProfileController().upload_link_pic(f)
+            if url_path:
+                result['code'] = 0
+                result['pic_path']= url_path
+            else:
+                result['code'] = 1
+        else :
             result['code'] = 1
-    else :
-        result['code'] = 1
-        result['msg'] = ERROR.UPLOAD
-    return jsonify(result)
+            result['msg'] = ERROR.UPLOAD
+        return jsonify(result)
 
 
 @app.route('/get_profile', methods=['GET', 'POST'])
