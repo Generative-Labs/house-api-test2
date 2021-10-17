@@ -80,49 +80,38 @@ class PlayController():
         result['sms_count'] = play.sms_count
         return result
 
-    def upload_play(self, file, path):
-        print('upload_play, file', file)
-        if file:
-            response, s3_dir = upload_file(file, path)
-        result = {'msg': response, 's3_dir': s3_dir}
-        return result
+    def upload_file_by_user_id(self, file, user_id):
+        return upload_file(file, str(user_id))
 
     def post_play(self, file, user_id, play_name, play_description, play_visibility, play_tag):
         # user_id as file folder
         hashids = Hashids(min_length=6)
         date = datetime.now()
         creator = UserTable.query.filter_by(id=user_id).first()
-        result = self.upload_play(file, str(user_id))
-        # print('file type is', type(file))
-        # thumbnail = capture_thumnail(file)
-        # thumbnail_name, ext = os.path.splitext(file.filename)
-        # thumbnail_result = self.upload_play(
-        #     io.BytesIO(thumbnail), os.path.join(
-        #         'thumbnail', str(user_id), thumbnail_name+'.png'))
-        # print('thumbnail_result', thumbnail_result)
-        play_url = result['s3_dir']
-        # play_thumbnail_url = thumbnail_result['s3_dir']
+        play_url = ""
+        if file:
+            response, s3_dir = self.upload_file_by_user_id(file, user_id)
+            play_url = s3_dir
         play_thumbnail_url = "https://d97ch61yqe5j6.cloudfront.net/thumbnail/thumbnail.png"
         play_item = PlayTable(
             play_url=play_url, play_name=play_name,
             play_description=play_description, play_visibility=play_visibility, play_tag=play_tag, date=date, user_id=user_id, play_thumbnail_url=play_thumbnail_url)
         msg = save_check(play_item)
         (code, message) = (1, msg) if msg else (0, '')
-        if not code:  # 上传成功
-            play_object = PlayTable.query.filter_by(
-                play_url=play_url).first()
+        if not code:
+            play_object = PlayTable.query.filter_by(user_id=user_id).filter_by(play_description=play_description).first()
             share_id = hashids.encode(play_object.id)
             play_object.share_id = share_id
             msg = update_check()
             (code, message) = (1, msg) if msg else (0, '')
-            if not code:  # 更新成果
-                result = {'code': code, 'msg': message,
-                          'play_visibility': play_visibility}
+            if not code:  # update success
+                result = {}
+                result['code'] = code
+                result['play_visibility'] = play_visibility
                 result['play_name'] = play_name
                 result['play_id'] = play_object.id
-                result['creator'] = creator.name
                 result['share_id'] = play_object.share_id
-                result['twilio_number'] = creator.twilio_number
+                result['twilio_number'] = creator.twilio_number if creator.twilio_number else ""
             else:
                 result = {'code': code, 'msg': message}
         else:
