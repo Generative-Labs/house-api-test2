@@ -9,5 +9,5 @@ class ERROR:
     EXISTS = 'Already exists'
     USER_CREATOR = 'User already registered as creator'
     UPLOAD = 'Upload empty file failed'
-    POST_ID_NO_EXISTS = "Paly id doesn't exist"
+    POST_ID_NO_EXISTS = "Play id doesn't exist"
     
