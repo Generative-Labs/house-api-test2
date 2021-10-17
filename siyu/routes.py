@@ -931,13 +931,26 @@ def webhooks_stream_push():
     '''
     getStream message callback
     '''
+
     msg = request.json
     print(msg)
-    if msg['type'] != 'message.new' or 'from' not in msg['user'] or msg['user']['from'] != 'app':
+
+    if msg['type'] != 'message.new':
         return jsonify(code="1"), 200
+
+    idList = msg['cid'].partition(":")[2].partition('-')
     streamController = StreamChatController()
+
+    if idList[0] == msg['user']['id']:
+        fromAddress=idList[0]
+        toAddress=idList[2]
+    else:
+        fromAddress=idList[2]
+        toAddress=idList[0]
+
     result = streamController.stream_to_sms(
-        msg['user']['id'], msg['user']['to'], msg['message']['text']
+        fromAddress, toAddress, msg['message']['text']
+        # msg['user']['id'], msg['user']['to'], msg['message']['text']
     )
     return result, 200
 
