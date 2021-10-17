@@ -22,6 +22,8 @@ class PlayController():
             tier_price=0, creator_id=visit_account_id).first().id  # free tier_id
         play_list = PlayTable.query.filter_by(user_id=visit_account_id).order_by(
             PlayTable.date.desc()).paginate(page=page, per_page=offset)
+        
+        result = defaultdict(list)
         if play_list:
             if not login_user_id:  # 访客模式下,仅显示free_tier
                 visible_play_list = PlayTable.query.filter_by(user_id=visit_account_id).filter(
@@ -44,7 +46,7 @@ class PlayController():
                 visible_play_list = PlayTable.query.filter_by(
                     user_id=login_user_id).order_by(PlayTable.date.desc())
             visible_play_id = [i.id for i in visible_play_list]
-            result = defaultdict(list)
+            
             for play in play_list.items:
                 if play.id in visible_play_id:
                     visible = 1
@@ -58,7 +60,6 @@ class PlayController():
                                            'date': play.date, 'comment_number': play.comment_number, 'play_visibility': visible, 'play_thumbnail_url': play.play_thumbnail_url})
         else:
             result['response'] = []
-
         return result
 
     def get_single_play(self, id):
