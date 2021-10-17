@@ -14,7 +14,7 @@ from siyu.controller.play_controller import PlayController
 from siyu.controller.user_profile_controller import UserProfileController
 from siyu.controller.stream_chat_controller import StreamChatController
 from siyu.s3_api import list_files, download_file, upload_file
-from siyu.models import UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable, func
+from siyu.models import PostLikeTable, UserTable, PlayTable, CommentTable, ThreadTable, PlayReward, PlayVote, CommentVote, ThreadVote, AvatarTable, Subscribers, TierTable, func
 from siyu import db
 from siyu import app
 import random
@@ -22,7 +22,7 @@ import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 from flask import request, g, jsonify, render_template, url_for
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, jwt_refresh_token_required, create_refresh_token, get_jwt_identity, fresh_jwt_required
+from flask_jwt_extended import JWTManager, jwt_manager, jwt_required, create_access_token, jwt_refresh_token_required, create_refresh_token, get_jwt_identity, fresh_jwt_required
 import stripe
 from siyu.stripeconfig import API_KEY
 from siyu.controller.stripe_controller import StripeController
@@ -532,6 +532,78 @@ def post_play():
         else:
             return jsonify(result), 400
 
+@ app.route('/like_post', methods=['POST'])
+@ jwt_required
+def like_post():
+    result = {}
+    msg = request.json
+    if not msg:
+        result['code'] = 1
+        result['msg'] = ERROR.ARGS
+        return jsonify(result)
+    play_id = msg.get('play_id', None)
+    if not play_id:
+        result['code'] = 1
+        result['msg'] = ERROR.ARGS
+        return jsonify(result)
+    
+    ################
+    #user_id = 1
+    ################
+
+    user_id = get_jwt_identity()
+    play = PlayTable.query.filter(PlayTable.id == play_id).first()
+    
+    if not play or not play.id:
+        result['code'] = 1
+        result['msg'] = ERROR.POST_ID_NO_EXISTS
+        return jsonify(result)
+    play_id = play.id
+
+    post_like = PostLikeTable.query.filter_by(play_id=play_id).filter_by(fan_id=user_id).scalar()
+    if not post_like:
+        post_like = PostLikeTable(play_id=play_id, fan_id=user_id)
+        post_like.like_status = post_like.like_status ^ 1
+        msg = save_check(post_like)
+    else:
+        post_like.like_status = post_like.like_status ^ 1
+        msg = update_check()
+    if not msg:
+        result['code'] = 0
+    else:
+        result['code'] = 1
+        result['msg'] = msg
+    return jsonify(result)
+
+@ app.route('/get_post_like_status', methods=['POST'])
+@ jwt_required
+def get_post_like_status():
+    result = {}
+    msg = request.json
+    if not msg:
+        result['code'] = 1
+        result['msg'] = ERROR.ARGS
+        return jsonify(result)
+    play_id = msg.get('play_id', None)
+    if not play_id:
+        result['code'] = 1
+        result['msg'] = ERROR.ARGS
+        return jsonify(result)
+    
+    ################
+    #user_id = 1
+    ################
+
+    user_id = get_jwt_identity()
+
+    post_like_status = PostLikeTable.query.filter(PostLikeTable.play_id == play_id).filter(PostLikeTable.fan_id == user_id).first()
+    result['code'] = 0
+    print("status:", post_like_status.like_status)
+    if not post_like_status or not post_like_status.like_status:
+        result['like_status'] = 0
+    else:
+        result['like_status'] = 1
+    return jsonify(result)
 
 @ app.route('/get_play', methods=['GET', 'POST'])
 def get_play():
