@@ -675,12 +675,12 @@ def distribute_to_subscriber():
     payload = request.get_json(silent=True)
     play_visibility = payload['play_visibility']
     play_name = payload['play_name']
-    play_url = payload['play_url']
+    play_id = payload['play_id']
     creator_id = get_jwt_identity()
     # print(list(play_visibility))
     controller = SubscribeController()
     result = controller.get_subscriber(
-        play_visibility, play_url, play_name, creator_id)
+        play_visibility, play_id, play_name, creator_id)
     return jsonify(result)
 
 
