@@ -10,4 +10,5 @@ class ERROR:
     USER_CREATOR = 'User already registered as creator'
     UPLOAD = 'Upload empty file failed'
     POST_ID_NO_EXISTS = "Play id doesn't exist"
+    POST_CONTENT_NO_EXISTS = "Post play's content doesn't exist"
     
