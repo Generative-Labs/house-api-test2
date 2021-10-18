@@ -13,7 +13,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DB_CONN']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['JWT_SECRET_KEY'] = b'+S\x8b>\x07\xa3\x14|ny\xb2u'
-app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 db = SQLAlchemy(app)
 # keep ithere
