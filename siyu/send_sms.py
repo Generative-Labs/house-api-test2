@@ -34,3 +34,12 @@ def provision_phone(phone_number):
     incoming_phone_number = client.incoming_phone_numbers.create(
         phone_number=phone_number,sms_method='POST',sms_url=SMS_URL)
     return incoming_phone_number.sid
+
+def lookup_phone(phone_number):
+    result = True
+    try:
+        client.lookups.v1.phone_numbers(phone_number).fetch()
+    except:
+        result = False
+    return result
+

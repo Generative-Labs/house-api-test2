@@ -1,5 +1,5 @@
 from siyu.provider.stream_chat_client import StreamChatClient
-from siyu.send_sms import send_message, available_phone
+from siyu.send_sms import send_message, available_phone, lookup_phone
 from siyu.controller.sql import save_check, update_check
 from siyu.utils import generate_confirmation_token, confirm_token
 from functools import wraps
@@ -309,18 +309,31 @@ def relationship():
 @app.route('/register', methods=['POST'])
 def register():
     payload = request.get_json(silent=True)
-    creator = payload['creator']  # Boolean
-    phone_number = payload['phone_number']
+    creator = payload.get('creator', 0)  # 0 or 1 ;0 is not, 1 is a creator 
+    phone_number = payload.get('phone_number', '')
     password = payload["password"]
     username = payload.get('username', '')
+
+    if not phone_number:
+        data = {'code': 1, 'msg': ERROR.ARGS}
+        return jsonify(data)
+
+    if not lookup_phone(phone_number):
+        data = {'code': 1, 'msg': ERROR.PHONE_NUMBER_INVALID}
+        return jsonify(data)
+
     if UserTable.query.filter_by(phone_number=phone_number).one_or_none():
         data = {'code': 1, 'msg': ERROR.USER_EXISTS}
-        return jsonify(data), 409
+        return jsonify(data)
     name = 'house' + \
         str(datetime.now()).split('.')[-1] + \
         str(phone_number)[-4:]  # placeholder
     if not username:
         username = name
+    if UserTable.query.filter_by(username=username).one_or_none():
+        data = {'code': 1, 'msg': ERROR.USER_NAME_EXISTS}
+        return jsonify(data)
+    
     email = '{}@gmail.com'.format(str(datetime.now()).split('.')
                                   [-1]+str(phone_number)[-4:])  # placeholder
     bio = ''
@@ -387,17 +400,17 @@ def handle_exist():
 @jwt_required
 def update_profile():
     payload = request.get_json(silent=True)
-    username = payload['username']
+    username = payload.get('username', '')
     name = payload.get('name', '')
     phone_number = payload['phone_number']
     email = payload.get('email', '')
     bio = payload.get('bio', '')
     if not username:
         data = {'code': 1, 'msg': ERROR.ARGS}
-        return jsonify(data), 412
-    # if UserTable.query.filter_by(username=username).one_or_none():
-    #     data = {'code': 1, 'msg': ERROR.USER_EXISTS}
-    #     return jsonify(data), 409
+        return jsonify(data)
+    if UserTable.query.filter_by(username=username).one_or_none():
+        data = {'code': 1, 'msg': ERROR.USER_NAME_EXISTS}
+        return jsonify(data)
     # check email validation:
     controller = UserProfileController()
     result = controller.update_profile(
@@ -406,9 +419,9 @@ def update_profile():
         result['username'] = username
         result['name'] = name
         result['bio'] = bio
-        return jsonify(result), 200
+        return jsonify(result)
     else:
-        return jsonify(result), 400
+        return jsonify(result)
 
 
 @app.route('/upload_avatar', methods=['POST'])
