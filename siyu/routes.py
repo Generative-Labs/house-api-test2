@@ -402,19 +402,30 @@ def update_profile():
     payload = request.get_json(silent=True)
     username = payload.get('username', '')
     name = payload.get('name', '')
-    phone_number = payload['phone_number']
+    phone_number = payload.get('phone_number', '')
     email = payload.get('email', '')
     bio = payload.get('bio', '')
+
+    if not phone_number:
+        data = {'code': 1, 'msg': ERROR.ARGS}
+        return jsonify(data)
+    if not lookup_phone(phone_number):
+        data = {'code': 1, 'msg': ERROR.PHONE_NUMBER_INVALID}
+        return jsonify(data)
     if not username:
         data = {'code': 1, 'msg': ERROR.ARGS}
         return jsonify(data)
     if UserTable.query.filter_by(username=username).one_or_none():
         data = {'code': 1, 'msg': ERROR.USER_NAME_EXISTS}
         return jsonify(data)
+    ######################
+    #user_id = 1
+    ######################
+    user_id = get_jwt_identity()
+
     # check email validation:
     controller = UserProfileController()
-    result = controller.update_profile(
-        phone_number, username, name, email, bio)
+    result = controller.update_profile(user_id, phone_number, username, name, email, bio)
     if not result['code']:
         result['username'] = username
         result['name'] = name

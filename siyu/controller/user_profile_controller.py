@@ -81,12 +81,13 @@ class UserProfileController():
         }
         return result
 
-    def update_profile(self, phone_number, username, name, email, bio):
-        user = UserTable.query.filter_by(phone_number=phone_number).first()
+    def update_profile(self, user_id, phone_number, username, name, email, bio):
+        user = UserTable.query.filter_by(id=user_id).first()
         if user:
+            user.name = name
+            user.phone_number = phone_number
             user.bio = bio
             user.username = username
-            user.name = name
             # user.email = email #see if email error when '' can be fixed by commenting out
             msg = update_check()
         else:
