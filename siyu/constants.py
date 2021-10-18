@@ -11,4 +11,6 @@ class ERROR:
     UPLOAD = 'Upload empty file failed'
     POST_ID_NO_EXISTS = "Play id doesn't exist"
     POST_CONTENT_NO_EXISTS = "Post play's content doesn't exist"
+    USER_NAME_EXISTS = 'User name exists'
+    PHONE_NUMBER_INVALID = "Phone number is invalid"
     
