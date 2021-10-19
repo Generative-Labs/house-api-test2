@@ -564,6 +564,37 @@ def post_play():
                 play_visibility, result['play_name'], result['play_id'], result['creator'], result['twilio_number'])
         return jsonify(result)
 
+@ app.route('/post_play_not_file', methods=['POST'])
+#@ jwt_required
+def post_play_not_file():
+    if request.method == 'POST':
+        f = None
+        msg = request.json.get('data')
+        play_name = msg.get('play_name', '')
+        play_description = msg.get('play_description', '')
+        play_visibility = msg.get('play_visibility', [])
+        play_tag = msg.get('play_tag', '')
+
+        result = {}
+        if not play_description:
+            result['code'] = 1
+            result['msg'] = ERROR.POST_CONTENT_NO_EXISTS
+            return jsonify(result)
+        
+        ##################
+        #user_id = 1
+        ##################
+        user_id = get_jwt_identity()
+
+        controller = PlayController()
+        result = controller.post_play(
+            f, user_id, play_name, play_description, play_visibility, play_tag)
+        if not result['code']:
+            subscribe_controller = SubscribeController()
+            result['twilio_sms'] = subscribe_controller.get_subscriber(
+                play_visibility, result['play_name'], result['play_id'], result['creator'], result['twilio_number'])
+        return jsonify(result)
+
 @ app.route('/like_post', methods=['POST'])
 @ jwt_required
 def like_post():
