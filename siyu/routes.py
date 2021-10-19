@@ -569,7 +569,7 @@ def post_play():
 def post_play_not_file():
     if request.method == 'POST':
         f = None
-        msg = request.json.get('data')
+        msg = request.json
         play_name = msg.get('play_name', '')
         play_description = msg.get('play_description', '')
         play_visibility = msg.get('play_visibility', [])
