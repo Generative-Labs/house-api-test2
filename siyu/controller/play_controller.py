@@ -111,6 +111,7 @@ class PlayController():
                 result['play_visibility'] = play_visibility
                 result['play_name'] = play_name
                 result['play_id'] = play_object.id
+                result['creator'] = creator.name
                 result['share_id'] = play_object.share_id
                 result['twilio_number'] = creator.twilio_number if creator.twilio_number else ""
             else:
