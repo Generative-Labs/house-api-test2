@@ -565,7 +565,7 @@ def post_play():
         return jsonify(result)
 
 @ app.route('/post_play_not_file', methods=['POST'])
-#@ jwt_required
+@ jwt_required
 def post_play_not_file():
     if request.method == 'POST':
         f = None
