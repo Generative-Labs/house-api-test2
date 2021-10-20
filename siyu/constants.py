@@ -13,4 +13,5 @@ class ERROR:
     POST_CONTENT_NO_EXISTS = "Post play's content doesn't exist"
     USER_NAME_EXISTS = 'User name exists'
     PHONE_NUMBER_INVALID = "Phone number is invalid"
+    FILE_POST_FAILED = "File post failed"
     

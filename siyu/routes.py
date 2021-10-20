@@ -550,6 +550,11 @@ def post_play():
         play_tag = payload.get('play_tag', '')
 
         result = {}
+        if not f:
+            result['code'] = 1
+            result['msg'] = ERROR.FILE_POST_FAILED
+            return jsonify(result)
+
         if not play_description:
             result['code'] = 1
             result['msg'] = ERROR.POST_CONTENT_NO_EXISTS
