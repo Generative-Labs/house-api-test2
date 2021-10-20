@@ -87,7 +87,8 @@ class UserProfileController():
             user.name = name
             user.phone_number = phone_number
             user.bio = bio
-            user.username = username
+            if username:
+                user.username = username
             # user.email = email #see if email error when '' can be fixed by commenting out
             msg = update_check()
         else:

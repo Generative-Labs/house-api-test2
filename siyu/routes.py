@@ -412,16 +412,21 @@ def update_profile():
     if not lookup_phone(phone_number):
         data = {'code': 1, 'msg': ERROR.PHONE_NUMBER_INVALID}
         return jsonify(data)
-    if not username:
-        data = {'code': 1, 'msg': ERROR.ARGS}
-        return jsonify(data)
-    if UserTable.query.filter_by(username=username).one_or_none():
-        data = {'code': 1, 'msg': ERROR.USER_NAME_EXISTS}
-        return jsonify(data)
+    
     ######################
     #user_id = 1
     ######################
     user_id = get_jwt_identity()
+    if username:
+        user_object = UserTable.query.filter_by(username=username).one_or_none()
+        if not user_object:
+            data = {'code': 1, 'msg': ERROR.USER_NOT_EXISTS}
+            return jsonify(data)
+        elif user_object.id != user_id:
+            data = {'code': 1, 'msg': ERROR.USER_NAME_EXISTS}
+            return jsonify(data)
+
+    
 
     # check email validation:
     controller = UserProfileController()
